@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Novel Interaktif - Fondasi Game Design</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at center, #1e1b4b 0%, #030712 100%);
+            color: #f9fafb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+            overflow: hidden;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 980px;
+            height: 640px;
+            background-size: cover;
+            background-position: center;
+            border: 3px solid #06b6d4;
+            border-radius: 24px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(6, 182, 212, 0.4);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            transition: background-image 0.8s ease-in-out;
+        }
+
+        .screen-overlay {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.75) 0%, rgba(3, 7, 18, 0.92) 100%);
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            padding: 30px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10;
+        }
+
+        .active {
+            display: flex;
+            animation: fadeInScale 0.4s ease-out;
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Glass Panel Registrasi yang Sangat Eyecatching */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(6, 182, 212, 0.4);
+            border-radius: 20px;
+            padding: 35px;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(6, 182, 212, 0.1);
+            text-align: center;
+        }
+
+        .game-title {
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(90deg, #38bdf8, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #cbd5e1;
+            margin-bottom: 25px;
+            font-weight: 400;
+        }
+
+        .form-group {
+            width: 100%;
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: #38bdf8;
+            font-weight: 600;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background-color: rgba(30, 41, 59, 0.9);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: #06b6d4;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+            background-color: rgba(15, 23, 42, 0.95);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 50%, #6366f1 100%);
+            color: white;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(6, 182, 212, 0.5);
+            width: 100%;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(6, 182, 212, 0.7);
+            filter: brightness(1.1);
+        }
+
+        /* Top Bar VN */
+        .vn-top-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 24px;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid rgba(6, 182, 212, 0.3);
+        }
+
+        .student-badge {
+            font-size: 13px;
+            color: #f8fafc;
+            background: rgba(6, 182, 212, 0.15);
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(6, 182, 212, 0.4);
+            font-weight: 600;
+        }
+
+        .progress-badge {
+            font-size: 14px;
+            color: #38bdf8;
+            font-weight: 700;
+            background: rgba(56, 189, 248, 0.1);
+            padding: 6px 14px;
+            border-radius: 12px;
+        }
+
+        /* Character Stage */
+        .character-stage {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 10px;
+            position: relative;
+        }
+
+        .avatar-frame {
+            position: relative;
+            animation: floatAnim 4s ease-in-out infinite;
+        }
+
+        @keyframes floatAnim {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .avatar-img {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: 4px solid #06b6d4;
+            background-color: #1e293b;
+            object-fit: cover;
+            box-shadow: 0 0 40px rgba(6, 182, 212, 0.6);
+        }
+
+        /* Dialogue Box */
+        .dialogue-wrapper {
+            width: 100%;
+            padding: 20px;
+        }
+
+        .dialogue-box {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(15px);
+            border: 2px solid #06b6d4;
+            border-radius: 18px;
+            padding: 22px;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+        }
+
+        .speaker-name {
+            font-size: 17px;
+            font-weight: 700;
+            color: #38bdf8;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .speaker-name::before {
+            content: '';
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background-color: #06b6d4;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #06b6d4;
+        }
+
+        .dialogue-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #f1f5f9;
+        }
+
+        .next-btn {
+            align-self: flex-end;
+            width: auto;
+            padding: 10px 28px;
+            margin-top: 10px;
+            font-size: 14px;
+            border-radius: 10px;
+        }
+
+        /* Quiz Panel */
+        .quiz-panel {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(16px);
+            border: 2px solid #06b6d4;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.8);
+            margin: auto;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .quiz-title {
+            color: #38bdf8;
+            font-weight: 700;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .score-tracker {
+            color: #4ade80;
+            font-weight: 700;
+            font-size: 15px;
+            background: rgba(74, 222, 128, 0.15);
+            padding: 6px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(74, 222, 128, 0.4);
+        }
+
+        .quiz-question {
+            font-size: 16px;
+            font-weight: 600;
+            color: #f8fafc;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background-color: rgba(30, 41, 59, 0.85);
+            color: #f1f5f9;
+            padding: 14px 18px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.25s ease;
+        }
+
+        .option-btn:hover {
+            background-color: rgba(6, 182, 212, 0.25);
+            border-color: #06b6d4;
+            transform: translateX(6px);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+
+        .feedback-banner {
+            margin-top: 15px;
+            font-weight: 700;
+            font-size: 14px;
+            min-height: 24px;
+            text-align: center;
+        }
+
+        /* Result Screen */
+        .result-card {
+            text-align: center;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(16px);
+            padding: 35px;
+            border-radius: 24px;
+            border: 2px solid #06b6d4;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
+        }
+
+        .score-circle {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.25) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border: 4px solid #06b6d4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px auto;
+            font-size: 32px;
+            font-weight: 800;
+            color: #38bdf8;
+            box-shadow: 0 0 30px rgba(6, 182, 212, 0.5);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 8px;
+            text-transform: uppercase;
+        }
+        .badge-gold { background: rgba(234, 179, 8, 0.25); color: #facc15; border: 1px solid #facc15; box-shadow: 0 0 10px rgba(234, 179, 8, 0.3); }
+        .badge-silver { background: rgba(148, 163, 184, 0.25); color: #e2e8f0; border: 1px solid #e2e8f0; }
+        .badge-bronze { background: rgba(217, 119, 6, 0.25); color: #fb923c; border: 1px solid #fb923c; }
+        .badge-fail { background: rgba(239, 68, 68, 0.25); color: #f87171; border: 1px solid #f87171; }
+    </style>
+</head>
+<body>
+
+<div class="game-container" id="gameContainer">
+    <div class="screen-overlay">
+
+        <!-- SCREEN 1: REGISTRASI -->
+        <div id="register-screen" class="screen active">
+            <div class="glass-panel">
+                <h2 class="game-title">🎮 Fondasi Game Design</h2>
+                <p class="subtitle">Media Pembelajaran Interaktif Visual Novel</p>
+                
+                <div class="form-group">
+                    <label for="playerName">Nama Lengkap</label>
+                    <input type="text" id="playerName" placeholder="Masukkan nama mahasiswa..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="playerNPM">NPM</label>
+                    <input type="text" id="playerNPM" placeholder="Masukkan NPM..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="playerClass">Kelas</label>
+                    <select id="playerClass" required>
+                        <option value="" disabled selected>-- Pilih Kelas Anda --</option>
+                        <option value="Kelas 1C">Kelas 1C</option>
+                        <option value="Kelas 1D">Kelas 1D</option>
+                        <option value="Kelas 1E">Kelas 1E</option>
+                    </select>
+                </div>
+
+                <button class="btn" onclick="startGame()">Mulai Petualangan 🚀</button>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: VISUAL NOVEL & KUIS -->
+        <div id="game-screen" class="screen" style="padding: 0;">
+            <div class="vn-top-bar">
+                <div class="student-badge" id="displayStudentInfo">Mahasiswa</div>
+                <div class="progress-badge" id="progressIndicator">Tahap 1 / 21</div>
+            </div>
+
+            <!-- Karakter Dosen Laki-laki Berkacamata -->
+            <div id="characterStage" class="character-stage">
+                <div class="avatar-frame">
+                    <img id="speakerAvatar" class="avatar-img" src="" alt="Dosen Avatar">
+                </div>
+            </div>
+
+            <!-- Dialog Box -->
+            <div id="dialogueWrapper" class="dialogue-wrapper">
+                <div class="dialogue-box">
+                    <div>
+                        <div class="speaker-name" id="speakerName">Pak Fahrur</div>
+                        <div class="dialogue-text" id="dialogueText">Teks percakapan...</div>
+                    </div>
+                    <button class="btn next-btn" id="nextActionBtn" onclick="proceedStep()">Lanjut ➔</button>
+                </div>
+            </div>
+
+            <!-- Quiz Panel -->
+            <div id="quizPanel" class="quiz-panel" style="display: none;">
+                <div class="quiz-header">
+                    <span class="quiz-title">💡 Uji Pemahaman Modul</span>
+                    <span class="score-tracker" id="liveScore">Skor: 0</span>
+                </div>
+                <div class="quiz-question" id="quizQuestionText">Pertanyaan kuis...</div>
+                <div class="options-list" id="quizOptionsContainer"></div>
+                <div class="feedback-banner" id="feedbackBanner"></div>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: HASIL & GOOGLE SHEETS -->
+        <div id="result-screen" class="screen">
+            <div class="result-card">
+                <h2 style="color: #38bdf8; font-size: 20px; font-weight: 800;">🏆 PEMBELAJARAN SELESAI</h2>
+                
+                <div style="background: rgba(255,255,255,0.06); padding: 12px; border-radius: 12px; margin: 15px 0; text-align: left; font-size: 13px; border: 1px solid rgba(6,182,212,0.3);">
+                    <p><strong>Nama:</strong> <span id="resName">-</span></p>
+                    <p><strong>NPM:</strong> <span id="resNpm">-</span></p>
+                    <p><strong>Kelas:</strong> <span id="resClass">-</span></p>
+                </div>
+
+                <div class="score-circle" id="resScore">0 / 100</div>
+                <div id="resBadgeContainer"></div>
+
+                <p id="statusSimpan" style="color: #facc15; font-size: 13px; font-weight: 600; margin-top: 12px;">⏳ Menyimpan data ke Google Sheets...</p>
+                
+                <button class="btn" onclick="location.reload()" style="margin-top: 18px; padding: 12px;">Ulangi Pembelajaran 🔄</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // URL Google Apps Script Web App Anda (Tidak diubah, tetap sama persis)
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwfNAaesWSe4KAkPIxfcQEdDXaskE943WOkh7VlIqhqeflBf6Xc4-BI6TCX_t4uWNXePQ/exec";
+
+    // URL Gambar Latar Belakang Sesuai Konteks Modul
+    const BGS = {
+        CLASSROOM: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=1200&auto=format&fit=crop",
+        GAMING: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1200&auto=format&fit=crop",
+        SERVER: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1200&auto=format&fit=crop",
+        DESIGN: "https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?q=80&w=1200&auto=format&fit=crop",
+        SCORE: "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=1200&auto=format&fit=crop"
+    };
+
+    // Avatar Dosen Pria Berkacamata
+    const AVATARS = {
+        NEUTRAL: "https://api.dicebear.com/7.x/bottts/svg?seed=FahrurRozi&backgroundColor=0284c7",
+        HAPPY: "https://api.dicebear.com/7.x/bottts/svg?seed=DosenGame&backgroundColor=0369a1",
+        SMART: "https://api.dicebear.com/7.x/bottts/svg?seed=TechGame&backgroundColor=0f172a"
+    };
+
+    let player = { name: "", npm: "", classGroup: "", score: 0 };
+    let stepIndex = 0;
+
+    // Alur Percakapan Berselang-seling dengan 10 Kuis Modul Fondasi Game Design
+    const gameFlow = [
+        { 
+            type: "dialogue", 
+            speaker: "Pak Fahrur (Dosen)", 
+            avatar: AVATARS.NEUTRAL, 
+            bg: BGS.CLASSROOM, 
+            text: "Halo {name}! Selamat datang di media pembelajaran interaktif Pengantar Teknologi Game. Mari kita review modul Fondasi Game Design." 
+        },
+        { 
+            type: "dialogue", 
+            speaker: "Pak Fahrur (Dosen)", 
+            avatar: AVATARS.SMART, 
+            bg: BGS.CLASSROOM, 
+            text: "Ingat, fokus utama game design adalah merancang aturan dan pengalaman bermain, bukan sekadar grafis. Coba uji pemahaman pertama!" 
+        },
+
+        // Kuis 1
+        { 
+            type: "quiz", 
+            bg: BGS.CLASSROOM,
+            question: "1. Apa fokus utama dari proses Game Design?", 
+            options: [
+                "Menulis kode program secara kompleks", 
+                "Merancang aturan, sistem, dan interaksi yang membentuk pengalaman bermain", 
+                "Membuat aset grafik 3D yang sangat realistis"
+            ], 
+            answer: 1 
+        },
+
+        { 
+            type: "dialogue", 
+            speaker: "Pak Fahrur (Dosen)", 
+            avatar: AVATARS.HAPPY, 
+            bg: BGS.SERVER, 
+            text: "Bagus! Dalam tim, programmer mewujudkannya secara teknis, artist memberi bentuk visual, dan designer merancang pengalaman." 
+        },
+
+        // Kuis 2
+        { 
+            type: "quiz", 
+            bg: BGS.SERVER,
+            question: "2. Manakah peran dalam tim game yang bertugas mewujudkan rancangan permainan secara teknis?", 
+            options: ["Game Designer", "Game Artist", "Programmer"], 
+            answer: 2 
+        },
+
+        { 
+            type: "dialogue", 
+            speaker: "Pak Fahrur (Dosen)", 
+            avatar: AVATARS.SMART, 
+            bg: BGS.GAMING, 
+            text: "Berikutnya kita masuk ke Bagian 1: Game Mechanics. Mechanic adalah kata kerja (verb) yang bisa dilakukan pemain." 
+        },
+
+        // Kuis 3
+        { 
+            type: "quiz", 
+            bg: BGS.GAMING,
+            question: "3. Apa istilah yang menggambarkan Game Mechanics dalam sebuah game?", 
+            options: ["Verb (Kata kerja)", "Noun (Kata benda)", "Adjective (Kata sifat)"], 
+            answer: 0 
+        },
+
+        { 
+            type: "dialogue", 
+            speaker: "Pak Fahrur (Dosen)", 
+            avatar: AVATARS.NEUTRAL, 
+            bg: BGS.GAMING, 
+            text: "Masuk ke Bagian 2: Rules. Aturan bersifat tegas dan mutlak, seperti batas nyawa pemain." 
+        },
+
+        // Kuis 4
+        { 
+            type: "quiz", 
+            bg: BGS.GAMING,
+            question: "4. Manakah di bawah ini yang merupakan contoh dari Game Rules?", 
+            options: ["Karakter melakukan lompatan melayang", "Pemain hanya memiliki 3 lives (nyawa)", "Membeli health potion di toko"], 
+            answer: 1 
+        },
+
+        { 
+            type: "dialogue", 
+            speaker: "Pak Fahrur (Dosen)", 
+            avatar: AVATARS.HAPPY, 
+            bg: BGS.DESIGN, 
+            text: "Bagian 3 membahas Goals. Goals memberikan arah serta menentukan kondisi kemenangan (win condition)." 
+        },
+
+        // Kuis 5
+        { 
+            type: "quiz", 
+            bg: BGS.DESIGN,
+            question: "5. Tujuan utama yang menentukan kondisi kemenangan (win condition) dalam game dinamakan...", 
+            options: ["Secondary Goal", "Primary Goal", "Optional Goal"], 
+            answer: 1 
+        },
+
+        { 
+            type: "dialogue", 
+            speaker: "Pak Fahrur (Dosen)", 
+            avatar: AVATARS.SMART, 
+            bg: BGS.DESIGN, 
+            text: "Di Bagian 4, Challenge menguji kemampuan pemain. Tantangan harus seimbang agar tercipta kondisi Flow." 
+        },
+
+        // Kuis 6
+        { 
+            type: "quiz", 
+            bg: BGS.DESIGN,
+            question: "6. Kondisi ketika tingkat tantangan (challenge) dan kemampuan (skill) berada dalam keseimbangan disebut...", 
+            options: ["Boredom", "Flow", "Frustration"], 
+            answer: 1 
+        },
+
+        // Kuis 7
+        { 
+            type: "quiz", 
+            bg: BGS.DESIGN,
+            question: "7. Apa yang terjadi jika Challenge terlalu tinggi sedangkan Skill pemain rendah?", 
+            options: ["Pemain merasa frustrasi (Frustration)", "Pemain merasa bosan (Boredom)", "Pemain langsung menang"], 
+            answer: 0 
+        },
+
+        { 
+            type: "dialogue", 
+            speaker: "Pak Fahrur (Dosen)", 
+            avatar: AVATARS.HAPPY, 
+            bg: BGS.SERVER, 
+            text: "Masuk ke Bagian 5: Gameplay dan Core Gameplay Loop yang berputar secara terus-menerus." 
+        },
+
+        // Kuis 8
+        { 
+            type: "quiz", 
+            bg: BGS.SERVER,
+            question: "8. Struktur Core Gameplay Loop secara umum terdiri dari urutan...", 
+            options: ["Input ➔ Action ➔ Feedback ➔ Reward ➔ Repeat", "Reward ➔ Repeat ➔ Input", "Action ➔ Input ➔ Repeat"], 
+            answer: 0 
+        },
+
+        { 
+            type: "dialogue", 
+            speaker: "Pak Fahrur (Dosen)", 
+            avatar: AVATARS.NEUTRAL, 
+            bg: BGS.GAMING, 
+            text: "Bagian 6 membahas Game Dynamics, yaitu perilaku alami yang muncul dari interaksi mechanics dan rules." 
+        },
+
+        // Kuis 9
+        { 
+            type: "quiz", 
+            bg: BGS.GAMING,
+            question: "9. Perilaku yang muncul secara alami ketika pemain berinteraksi dengan mechanics dan rules disebut...", 
+            options: ["Game Engine", "Game Dynamics", "Game Code"], 
+            answer: 1 
+        },
+
+        { 
+            type: "dialogue", 
+            speaker: "Pak Fahrur (Dosen)", 
+            avatar: AVATARS.SMART, 
+            bg: BGS.CLASSROOM, 
+            text: "Terakhir, Bagian 7 tentang User Experience (UX), memastikan kemudahan memahami game dan kontrol yang intuitif." 
+        },
+
+        // Kuis 10
+        { 
+            type: "quiz", 
+            bg: BGS.CLASSROOM,
+            question: "10. Manakah ciri-ciri dari penerapan User Experience (UX) yang lebih baik dalam game?", 
+            options: ["UI yang sangat rumit", "Kontrol intuitif dan memberikan feedback yang jelas", "Difficulty yang melonjak tiba-tiba"], 
+            answer: 1 
+        },
+
+        { 
+            type: "dialogue", 
+            speaker: "Pak Fahrur (Dosen)", 
+            avatar: AVATARS.HAPPY, 
+            bg: BGS.SCORE, 
+            text: "Luar biasa, {name}! Kamu telah menyelesaikan seluruh rangkaian materi dan kuis. Mari kita lihat hasilnya!" 
+        }
+    ];
+
+    function startGame() {
+        const name = document.getElementById('playerName').value.trim();
+        const npm = document.getElementById('playerNPM').value.trim();
+        const classGroup = document.getElementById('playerClass').value;
+
+        if (!name || !npm || !classGroup) {
+            alert("Harap lengkapi Nama, NPM, dan Kelas terlebih dahulu!");
+            return;
+        }
+
+        player.name = name;
+        player.npm = npm;
+        player.classGroup = classGroup;
+
+        document.getElementById('displayStudentInfo').innerText = `${player.name} (${player.npm}) | ${player.classGroup}`;
+        
+        document.getElementById('register-screen').classList.remove('active');
+        document.getElementById('game-screen').classList.add('active');
+
+        loadCurrentStep();
+    }
+
+    function loadCurrentStep() {
+        if (stepIndex >= gameFlow.length) {
+            finishGame();
+            return;
+        }
+
+        document.getElementById('progressIndicator').innerText = `Tahap ${stepIndex + 1} / ${gameFlow.length}`;
+        const current = gameFlow[stepIndex];
+
+        document.getElementById('gameContainer').style.backgroundImage = `url('${current.bg}')`;
+
+        const charStage = document.getElementById('characterStage');
+        const dialogueWrapper = document.getElementById('dialogueWrapper');
+        const quizPanel = document.getElementById('quizPanel');
+
+        if (current.type === "dialogue") {
+            charStage.style.display = "flex";
+            dialogueWrapper.style.display = "block";
+            quizPanel.style.display = "none";
+
+            document.getElementById('speakerName').innerText = current.speaker;
+            document.getElementById('speakerAvatar').src = current.avatar;
+            document.getElementById('dialogueText').innerText = current.text.replace("{name}", player.name);
+        } else if (current.type === "quiz") {
+            charStage.style.display = "none";
+            dialogueWrapper.style.display = "none";
+            quizPanel.style.display = "block";
+
+            document.getElementById('liveScore').innerText = `Skor: ${player.score}`;
+            document.getElementById('quizQuestionText').innerText = current.question;
+            document.getElementById('feedbackBanner').innerText = "";
+
+            const optionsContainer = document.getElementById('quizOptionsContainer');
+            optionsContainer.innerHTML = "";
+
+            current.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(idx, current.answer);
+                optionsContainer.appendChild(btn);
+            });
+        }
+    }
+
+    function proceedStep() {
+        stepIndex++;
+        loadCurrentStep();
+    }
+
+    function handleAnswer(selectedIndex, correctIndex) {
+        const options = document.querySelectorAll('.option-btn');
+        options.forEach(btn => btn.style.pointerEvents = "none");
+
+        const feedback = document.getElementById('feedbackBanner');
+        if (selectedIndex === correctIndex) {
+            player.score += 10;
+            options[selectedIndex].style.backgroundColor = "rgba(74, 222, 128, 0.35)";
+            options[selectedIndex].style.borderColor = "#4ade80";
+            feedback.innerText = "✨ Benar! (+10 Poin)";
+            feedback.style.color = "#4ade80";
+        } else {
+            options[selectedIndex].style.backgroundColor = "rgba(248, 113, 113, 0.35)";
+            options[selectedIndex].style.borderColor = "#f87171";
+            options[correctIndex].style.backgroundColor = "rgba(74, 222, 128, 0.35)";
+            options[correctIndex].style.borderColor = "#4ade80";
+            feedback.innerText = "❌ Jawaban belum tepat.";
+            feedback.style.color = "#f87171";
+        }
+
+        setTimeout(() => {
+            stepIndex++;
+            loadCurrentStep();
+        }, 1500);
+    }
+
+    function finishGame() {
+        document.getElementById('game-screen').classList.remove('active');
+        document.getElementById('result-screen').classList.add('active');
+        document.getElementById('gameContainer').style.backgroundImage = `url('${BGS.SCORE}')`;
+
+        document.getElementById('resName').textContent = player.name;
+        document.getElementById('resNpm').textContent = player.npm;
+        document.getElementById('resClass').textContent = player.classGroup;
+        document.getElementById('resScore').textContent = `${player.score} / 100`;
+
+        const badgeContainer = document.getElementById('resBadgeContainer');
+        let badgeHTML = '';
+
+        if (player.score >= 90) {
+            badgeHTML = `<span class="badge badge-gold">🌟 Master Game Explorer (Sangat Memuaskan)</span>`;
+        } else if (player.score >= 70) {
+            badgeHTML = `<span class="badge badge-silver">🥈 Advanced Game Adventurer (Baik)</span>`;
+        } else if (player.score >= 50) {
+            badgeHTML = `<span class="badge badge-bronze">🥉 Junior Explorer (Cukup)</span>`;
+        } else {
+            badgeHTML = `<span class="badge badge-fail">⚠️ Perlu Mengulang Materi</span>`;
+        }
+        badgeContainer.innerHTML = badgeHTML;
+
+        sendDataToGoogleSheet();
+    }
+
+    function sendDataToGoogleSheet() {
+        const statusDiv = document.getElementById('statusSimpan');
+        statusDiv.style.color = "#facc15";
+        statusDiv.textContent = "⏳ Menyimpan data ke Google Sheets...";
+
+        if (SCRIPT_URL) {
+            const payload = {
+                nama: player.name,
+                npm: player.npm,
+                kelas: player.classGroup,
+                skor: player.score
+            };
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                statusDiv.style.color = "#4ade80";
+                statusDiv.textContent = "✅ Data Berhasil Disimpan!";
+            })
+            .catch(error => {
+                console.error("Gagal mengirim data:", error);
+                statusDiv.style.color = "#f87171";
+                statusDiv.textContent = "❌ Data Gagal Disimpan.";
+            });
+        } else {
+            statusDiv.style.color = "#f87171";
+            statusDiv.textContent = "❌ URL Google Script belum diatur!";
+        }
+    }
+</script>
+
+</body>
+</html>
